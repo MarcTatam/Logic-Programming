@@ -1,0 +1,66 @@
+animal(X)
+	:- member(X, [aardvark, antelope, coyote, dingo, donkey, elephant, horse, jaguar, kangaroo]).
+
+vegetable(X)
+	:- member(X, [artichoke, cabbage, carrot, celery, leek, lettuce, marrow, onion, potato]).
+
+mineral(X)
+	:- member(X, [anatase, basalt, cobolt, copper, galena, nickel, sodium, silver, zircon]).
+
+spell(Y, X)
+	:- atom_chars(Y, X).
+
+getHead([H],H). %predicate to get the head of a list.
+getHead([H|_],H).
+
+getTail([T],T). % predicate to get tail of a list
+getTail([_|T],V)
+	:- getTail(T,V).
+
+getElem([X],_,X). %predicate to get an element of a list at index N
+getElem([H|_], N, Y)
+	:- N = 0,
+    	Y = H.
+getElem([_|T],N, Y)
+	:- N = length(T),
+    	Y = getTail(T).
+getElem([_|T], N, Y)
+	:- N1 is N - 1,
+    	getElem(T, N1, Y).
+
+clue1(X) %predicate that states that the word that is the first clue must be 6 letters long and an animal
+	:- animal(X),
+       spell(X,Y),
+       length(Y, 6).
+
+clue2(X) %predicate that states that the word that is the second clue must be 6 letters long and a vegetable
+	:- vegetable(X),
+    	spell(X,Y),
+    	length(Y, 6).
+clue3(X) %predicate that states that the word that is the third clue must be 7 letters long a mineral
+	:- mineral(X),
+    	spell(X,Y),
+    	length(Y,7).
+findSolution(S) %predicate that finds a solution to the puzzle
+	:- clue1(X), % X,Y,Z are the words that correspond to each clue
+    	clue2(Y),
+    	clue3(Z),
+    	spell(X,U), %U,V,W are the words for each clue in list form
+    	spell(Y,V),
+    	spell(Z,W),
+    	getElem(W,5,C1), %C1-C9 are the letters with each number corresponding to the number in the puzzle
+    	getElem(W,1,C3),
+    	getHead(W,C7),
+    	getElem(W,3,C8),
+    	getTail(W,C9),
+    	getTail(U,C9),
+    	getHead(U,C4),
+    	getElem(U,2,C2),
+    	getElem(U,1,C5),
+    	getTail(V,C5),
+    	getHead(V,C6),
+		S = [C1,C2,C3,C4,C5,C6,C7,C8,C9].
+main
+	:- findSolution(S),
+    	spell(A,S),
+    	write(A).

@@ -1,0 +1,98 @@
+asciiConvert([H], [V]) %converts a single digit integer from its ascii code to its true value
+	:- V is H - 48.
+asciiConvert([H|T], V)
+	:- asciiConvert(T, U),
+    H1 is H - 48,
+    V = [H1|U].
+convertToList(X,Y) %converts an integer to a list of its digits.
+	:- number_string(X,S),
+    	name(S,L),
+    	asciiConvert(L,Y).
+unique(X) %checks if each digit in a integer is unique
+	:-  number_string(X,Y),
+    	name(Y,L),
+    	sort(L, S),
+    	length(L, OriginalLength),
+    	length(S, SortedLength),
+    	SortedLength == OriginalLength.
+
+checkMultiple([D1,D2,D3,D4]) %checks if the first two elements of a list as a number are a multiple of the last 2
+	:- M1 is D1*10 + D2,
+		M2 is D3*10 + D4,
+    	M1 > M2,
+    	0 =:= mod(M1, M2).
+
+checkZero([]). %checks none of the elements in a list are smaller than 0.
+checkZero([H|T])
+	:- H > 0,
+    	checkZero(T).
+
+par(X) %checks if a number is a par.
+	:-convertToList(X,L),
+    length(L,Y),
+    Y = 4,
+    unique(X),
+    checkMultiple(L),
+    checkZero(L).
+
+listOfPars(10000, X, X). %gets a list of pars that are lower than 10000 i.e. those that are 4 digits
+listOfPars(N, L, X)
+	:- N < 10000,
+    par(N),
+    N1 is N + 1,
+    listOfPars(N1, [N|L], X).
+listOfPars(N, L, X)
+	:- N < 10000,
+    N1 is N + 1,
+    listOfPars(N1, L, X).
+
+pars(PARS) %lists the pars
+	:- listOfPars(1000, [], X),
+    	sort(X,Y),
+    	PARS = Y.
+
+notmember([],_). %checks if a item is not a member of a list.
+notmember([H|T],N)
+	:- N \== H,
+    notmember(T,N).
+
+missingNumber(X,Y,[H|_],H) %finds an item that is missing from 2 lists but is a member of the third
+	:- notmember(X,H),		% X is the first list to check, Y is the second and the third argument is the list that contains the missing element
+    notmember(Y,H).
+missingNumber(X,Y,[_|T],N)
+	:- missingNumber(X,Y,T,N).
+
+party(X,Y) %Checks if X,Y are a party
+	:- par(X),
+   	par(Y),
+    atom_concat(X,Y,Z), %Z is an atom that is formed from joining the other two atoms
+    atom_number(Z,C), %C is Z in integer form
+    unique(C),
+    convertToList(X,U), %U is X in list form
+    convertToList(Y,V), %V is Y in list form
+    missingNumber(U,V,[1,2,3,4,5,6,7,8,9],N),
+	M1 is Y mod N, %M1 is the remainder of Y divided by the missing number
+	M2 is X mod N, %M2 is the remainder of X divided by the missing number
+	0 =:= M1,
+	0 =:= M2.
+
+matchingpar(X,N,N) %Finds the matching par for a party for those that have one.
+	:- N > 1000,
+    party(X,N).
+matchingpar(X, N, Y)
+	:- N1 is N - 1,
+    N1 > 1000,
+    matchingpar(X, N1, Y).
+
+listOfPartys([],_,[]). %Generates a list of partys
+listOfPartys([H|T], PARS, [[H,Y]|L])
+	:- matchingpar(H, 10000, Y),
+    	listOfPartys(T, PARS, L).
+listOfPartys([_|T], PARS, L)
+	:- listOfPartys(T, PARS, L).
+
+partys(PARTYS) %shows a list of partys.
+	:- pars(PARS),
+    listOfPartys(PARS,PARS,PARTYS).
+main
+	:- partys(X), write(X).
